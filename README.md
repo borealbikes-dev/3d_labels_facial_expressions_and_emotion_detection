@@ -16,4 +16,4 @@ This is a sample project that demonstrates how to use the Foxglove Studio 3D lab
 
 Image with 3D labels:
 
-results.png
+![Alt text](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/facial_markers/results/published_marker.gif)
