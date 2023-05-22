@@ -26,4 +26,8 @@ Plot the count of emotions using Foxglove Data Analyzer and Jupyter Notebook
 
 ![Alt text](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/results/emotion_counts.png)
 
-Link to the Jupyter Notebook - https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/facial_expression_recognition/facial_expression_recognition/foxglove_data_analyzer.ipynb
+Jupyter Notebook - [Link](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/facial_expression_recognition/facial_expression_recognition/foxglove_data_analyzer.ipynb)
+
+Plot a path on the map based on emotion
+
+![Alt text](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/results/path_emotion.png)
