@@ -14,20 +14,20 @@ This is a sample project that demonstrates how to use the Foxglove Studio 3D lab
 
 ## Results
 
-Image with markers on facial features:
+### Image with markers on facial features:
 
 ![Alt text](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/facial_markers/results/published_marker.gif)
 
-Emotion Detection 
+### Emotion Detection 
 
 ![Alt text](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/results/emotions_result.gif)
 
-Plot the count of emotions using Foxglove Data Analyzer and Jupyter Notebook
+### Plot the count of emotions using Foxglove Data Analyzer and Jupyter Notebook
 
 ![Alt text](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/results/emotion_counts.png)
 
 Jupyter Notebook - [Link](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/facial_expression_recognition/facial_expression_recognition/foxglove_data_analyzer.ipynb)
 
-Plot a path on the map based on emotion
+### Plot a path on the map based on emotion
 
 ![Alt text](https://github.com/borealbikes-dev/3d_labels_facial_expressions_foxglove/blob/main/results/path_emotion.png)
