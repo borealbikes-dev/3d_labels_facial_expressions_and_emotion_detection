@@ -1,4 +1,4 @@
-# 3D Labels For Facial Expressions in Foxglove
+# 3D Labels For Facial Expressions
 
 ## Overview
 
