@@ -9,8 +9,13 @@ from rclpy.node import Node
 import dlib
 from imutils.face_utils import FACIAL_LANDMARKS_68_IDXS
 from cv_bridge import CvBridge
+from keras.models import load_model
+from tensorflow.keras.preprocessing.image import img_to_array
 
-from std_msgs.msg import ColorRGBA
+
+from keras import models
+
+from std_msgs.msg import ColorRGBA, String
 from sensor_msgs.msg import Image
 from foxglove_msgs.msg import ImageMarkerArray
 from visualization_msgs.msg import ImageMarker
@@ -51,6 +56,21 @@ COLORS_BGR = [
     (255, 255, 255),
 ]
 
+Emotion_COLOR = {
+    'Angry': (0, 0, 255),
+    'Fear': (255, 0, 255),
+    'Disgust': (0, 255, 0),
+    'Happy': (0, 255, 255),
+    'Neutral': (255, 255, 255),
+    'Sad': (0, 0, 255),
+    'Surprise': (0, 0, 255),
+}
+
+
+# Emotion Detection
+emotion_predictor = load_model("/vagrant/src/3d_labels_facial_expressions_foxglove/best_model.h5")
+
+class_labels = ['Angry', 'Fear', 'Disgust', 'Happy', 'Neutral', 'Sad', 'Surprise']
 
 class FacialMarkerPublisherNode(Node):
     """
@@ -68,16 +88,21 @@ class FacialMarkerPublisherNode(Node):
         self.create_subscription(
             Image, "/image/cam2", self.image_callback, 1
         )
+        self.pub_emotion = self.create_publisher(
+            String, "/facial_expression", 1
+        )
+            
 
     def image_callback(self, msg: Image):
         # Convert the ROS Image to a grayscale OpenCV image
         cv_img = cv_bridge.imgmsg_to_cv2(msg)
-        grayscale_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        rgb_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+        grayscale_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2GRAY)
 
-        image_height, image_width, _ = grayscale_img.shape
+        image_height, image_width, _ = rgb_img.shape
 
         # Run the face detector on the grayscale image
-        rects = face_detector(grayscale_img, 0)
+        rects = face_detector(rgb_img, 0)
       
 
         dlib_rectangles = dlib.rectangles()
@@ -97,9 +122,50 @@ class FacialMarkerPublisherNode(Node):
 
                 rect_dlib = dlib.rectangle(int(bbox[0]), int(bbox[1]), int(bbox[2]), int(bbox[3]))
                 # Run the predictor, which returns a list of 68 facial landmarks as (x,y) points
-                points = predictor(grayscale_img, rect_dlib).parts()
+                points = predictor(rgb_img, rect_dlib).parts()
 
                 # self.get_logger().info(f"Detected {len(points)} facial landmarks")
+
+                # Get ROI for the face
+                face_roi = rgb_img[
+                    int(bbox[1]):int(bbox[3]),
+                    int(bbox[0]):int(bbox[2])
+                ]
+                face_roi = cv2.resize(face_roi, (224, 224))
+                image_pixels = img_to_array(face_roi)
+                image_pixels = np.expand_dims(image_pixels, axis=0)
+                image_pixels /= 255.0
+
+                # Predict the emotion
+                predictions = emotion_predictor.predict(image_pixels)
+                self.get_logger().info(f"Predictions: {predictions}")
+                emotion_label = class_labels[np.argmin(predictions[0])]
+
+
+
+                # Draw the face bounding box and write the emotion label
+                cv2.rectangle(
+                    rgb_img,
+                    (int(bbox[0]), int(bbox[1])),
+                    (int(bbox[2]), int(bbox[3])),
+                    Emotion_COLOR[class_labels[np.argmin(predictions[0])]],
+                    2,
+                )
+                cv2.putText(
+                    rgb_img,
+                    emotion_label,
+                    (int(bbox[0]), int(bbox[1]) - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    Emotion_COLOR[class_labels[np.argmin(predictions[0])]],
+                    2,
+                )
+
+                # Publish the emotion label
+                emotion_ros_msg = String()
+                emotion_ros_msg.data = emotion_label
+                self.pub_emotion.publish(emotion_ros_msg)
+
 
                 # Draw a line around each face region
                 for region_idx, (name, (start_idx, end_idx)) in enumerate(
@@ -110,11 +176,10 @@ class FacialMarkerPublisherNode(Node):
                     if name != "jaw":
                         region_points.append(region_points[0])
 
-                    self.get_logger().info(f"color: {COLORS[region_idx % len(COLORS)]}")
                     # Draw the lines on the image
                     for i in range(1, len(region_points)):
                         cv2.line(
-                            grayscale_img,
+                            rgb_img,
                             (region_points[i - 1].x, region_points[i - 1].y),
                             (region_points[i].x, region_points[i].y),
                             COLORS_BGR[region_idx % len(COLORS)],
@@ -134,7 +199,7 @@ class FacialMarkerPublisherNode(Node):
         # Publish the markers
         self.pub_markers.publish(markers)
         # Publish the image
-        self.pub_image.publish(cv_bridge.cv2_to_imgmsg(grayscale_img))
+        self.pub_image.publish(cv_bridge.cv2_to_imgmsg(rgb_img))
 
 
 def main(args=None):
