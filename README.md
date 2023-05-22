@@ -1,4 +1,4 @@
-# 3D Labels For Facial Expressions
+# 3D Labels For Facial Expressions and Emotion Detection
 
 ## Overview
 
